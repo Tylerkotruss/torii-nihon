@@ -8,6 +8,9 @@ const LINKS: { href: string; label: string }[] = [
   { href: "/admin", label: "Visão geral" },
   { href: "/admin/alunos", label: "Alunos" },
   { href: "/admin/documentos", label: "Documentos" },
+  { href: "/admin/avisos", label: "Avisos" },
+  { href: "/admin/calendario", label: "Calendário" },
+  { href: "/admin/duvidas", label: "Dúvidas" },
 ];
 
 const ADMIN_PREFETCH_HREFS = LINKS.map((l) => l.href);

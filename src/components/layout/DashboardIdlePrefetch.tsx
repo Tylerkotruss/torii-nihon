@@ -6,12 +6,8 @@ import { useEffect, useRef } from "react";
 const DASHBOARD_PREFETCH_PATHS = [
   "/dashboard",
   "/dashboard/docs",
-  "/dashboard/certificados",
   "/dashboard/avisos",
   "/dashboard/calendario",
-  "/dashboard/ranking",
-  "/dashboard/graficos",
-  "/dashboard/academy",
   "/dashboard/duvidas",
 ] as const;
 

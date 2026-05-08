@@ -29,12 +29,15 @@ export function AdminHeader({
   subtitle,
   stats,
   attention,
+  actions,
 }: {
   title: string;
   subtitle?: string;
   stats: Stat[];
   /** Visão geral: bloco entre título e métricas */
   attention?: ReactNode;
+  /** Ação secundária (ex.: atualizar) */
+  actions?: ReactNode;
 }) {
   const statsGrid = (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
@@ -69,13 +72,16 @@ export function AdminHeader({
           priority
         />
       </div>
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
-          {title}
-        </h1>
-        {subtitle ? (
-          <p className="mt-0.5 text-sm text-slate-300/90">{subtitle}</p>
-        ) : null}
+      <div className="flex min-w-0 items-center gap-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-semibold tracking-tight text-slate-50">
+            {title}
+          </h1>
+          {subtitle ? (
+            <p className="mt-0.5 text-sm text-slate-300/90">{subtitle}</p>
+          ) : null}
+        </div>
+        {actions ? <div className="shrink-0">{actions}</div> : null}
       </div>
     </div>
   );

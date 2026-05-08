@@ -1,5 +1,5 @@
-import { DashboardDevPlaceholder } from "@/components/layout/DashboardDevPlaceholder";
+import { redirect } from "next/navigation";
 
 export default function AcademyPage() {
-  return <DashboardDevPlaceholder sectionTitle="Academy" />;
+  redirect("/dashboard");
 }

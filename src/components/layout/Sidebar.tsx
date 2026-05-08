@@ -2,9 +2,11 @@
 
 import { DOCUMENTOS_META_TOTAL } from "@/lib/documents";
 import { useDashboardDataOptional } from "@/contexts/DashboardDataContext";
+import { ToriiCard } from "@/components/torii/ToriiCard";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { memo } from "react";
+import styles from "./Sidebar.module.css";
 
 function IconLayoutDashboard({ className }: { className?: string }) {
   return (
@@ -42,24 +44,6 @@ function IconFileText({ className }: { className?: string }) {
       <path d="M14 2v6h6" />
       <path d="M8 13h8" />
       <path d="M8 17h8" />
-    </svg>
-  );
-}
-
-function IconBadgeCheck({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M12 2l3 2 3.6.3 1.4 3.3L22 12l-2 4.4-1.4 3.3-3.6.3-3 2-3-2-3.6-.3-1.4-3.3L2 12l2-4.4 1.4-3.3L9 4z" />
-      <path d="M9 12l2 2 4-5" />
     </svg>
   );
 }
@@ -103,66 +87,6 @@ function IconCalendar({ className }: { className?: string }) {
   );
 }
 
-function IconTrophy({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M8 21h8" />
-      <path d="M12 17v4" />
-      <path d="M7 4h10v5a5 5 0 0 1-10 0z" />
-      <path d="M5 4h2v3a3 3 0 0 1-3 3H3V7a3 3 0 0 1 3-3z" />
-      <path d="M19 4h2a3 3 0 0 1 3 3v3h-1a3 3 0 0 1-3-3z" />
-    </svg>
-  );
-}
-
-function IconChart({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M4 19V5" />
-      <path d="M4 19h16" />
-      <path d="M8 16v-6" />
-      <path d="M12 16V9" />
-      <path d="M16 16v-3" />
-    </svg>
-  );
-}
-
-function IconGraduationCap({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M22 10L12 5 2 10l10 5z" />
-      <path d="M6 12v5c0 1 2.7 3 6 3s6-2 6-3v-5" />
-    </svg>
-  );
-}
-
 function IconHelpCircle({ className }: { className?: string }) {
   return (
     <svg
@@ -189,12 +113,8 @@ const NAV_ITEMS: {
 }[] = [
   { label: "Assistente", href: "/dashboard", icon: IconLayoutDashboard },
   { label: "Documentos", href: "/dashboard/docs", icon: IconFileText },
-  { label: "Certificados", href: "/dashboard/certificados", icon: IconBadgeCheck },
   { label: "Avisos", href: "/dashboard/avisos", icon: IconBell },
   { label: "Calendário", href: "/dashboard/calendario", icon: IconCalendar },
-  { label: "Ranking", href: "/dashboard/ranking", icon: IconTrophy },
-  { label: "Gráficos", href: "/dashboard/graficos", icon: IconChart },
-  { label: "Academy", href: "/dashboard/academy", icon: IconGraduationCap },
   { label: "Dúvidas", href: "/dashboard/duvidas", icon: IconHelpCircle },
 ];
 
@@ -263,7 +183,7 @@ const SidebarNav = memo(function SidebarNav({
   pathname: string | null;
 }) {
   return (
-    <nav className="p-3">
+    <nav className="pt-3">
       <ul className="space-y-1">
         {NAV_ITEMS.map((item) => {
           const base =
@@ -318,23 +238,35 @@ export function Sidebar() {
   const statusGeral = docResumo?.statusGeral ?? "—";
 
   return (
-    <aside className="fixed inset-y-0 left-0 w-72 border-r border-zinc-800 bg-zinc-950 text-zinc-100">
+    <aside
+      className={[
+        "fixed inset-y-0 left-0 w-72 h-screen border-r border-zinc-800 bg-zinc-950 text-zinc-100",
+        "overflow-y-auto overflow-x-hidden scroll-smooth",
+        styles.sidebarScroll,
+      ].join(" ")}
+    >
       <div className="h-14 px-5 flex items-center border-b border-zinc-800">
         <div className="text-sm font-semibold tracking-tight text-zinc-100">
           Portal do Aluno
         </div>
       </div>
 
-      <section className="px-4 pt-4">
-        <SidebarUserCard
-          loading={loading}
-          nome={nome}
-          statusGeral={loading ? "…" : statusGeral}
-          sublinhaDoc={loading ? "…" : sublinhaDoc}
-        />
+      <section className="px-4 pt-3">
+        {loading ? (
+          <SidebarUserCard
+            loading={loading}
+            nome={nome}
+            statusGeral={loading ? "…" : statusGeral}
+            sublinhaDoc={loading ? "…" : sublinhaDoc}
+          />
+        ) : (
+          <ToriiCard mode="compact" />
+        )}
       </section>
 
-      <SidebarNav pathname={pathname} />
+      <div className="px-4 pb-4">
+        <SidebarNav pathname={pathname} />
+      </div>
     </aside>
   );
 }

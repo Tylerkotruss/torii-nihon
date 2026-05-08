@@ -1,0 +1,24 @@
+.sidebarScroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(63, 63, 70, 0.55) transparent; /* zinc-700/55 */
+}
+
+.sidebarScroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sidebarScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebarScroll::-webkit-scrollbar-thumb {
+  background-color: rgba(63, 63, 70, 0.55);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+.sidebarScroll:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(113, 113, 122, 0.65); /* zinc-500/65 */
+}
+

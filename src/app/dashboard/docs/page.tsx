@@ -4,8 +4,6 @@ import { DashboardHeader } from "@/components/layout/DashboardHeader";
 import { useDashboardData } from "@/contexts/DashboardDataContext";
 import {
   buildDocumentStorageKey,
-  documentStatusClass,
-  documentStatusLabel,
   DOCUMENT_TYPE_OPTIONS,
   tipoLabel,
   validateDocumentFile,
@@ -30,6 +28,58 @@ type Documento = {
   created_at: string;
   updated_at: string;
 };
+
+function formatUploadedAt(value: string) {
+  return new Date(value).toLocaleString("pt-BR", {
+    dateStyle: "short",
+    timeStyle: "short",
+  });
+}
+
+function normalizeDocStatus(status?: string | null): {
+  label: "Pendente" | "Em análise" | "Recusado" | "Aprovado";
+  hint: string;
+  actionLabel: string;
+  badgeClass: string;
+  labelClass: string;
+} {
+  if (status === "aprovado") {
+    return {
+      label: "Aprovado",
+      hint: "Validado pela equipe.",
+      actionLabel: "Documento aprovado",
+      badgeClass:
+        "border-emerald-400/25 bg-emerald-500/10 text-emerald-200 ring-emerald-400/20",
+      labelClass: "text-emerald-200",
+    };
+  }
+  if (status === "rejeitado" || status === "recusado") {
+    return {
+      label: "Recusado",
+      hint: "Corrigir e reenviar.",
+      actionLabel: "Reenviar documento",
+      badgeClass: "border-red-400/25 bg-red-500/10 text-red-200 ring-red-400/20",
+      labelClass: "text-red-200",
+    };
+  }
+  if (status === "enviado" || status === "em_analise") {
+    return {
+      label: "Em análise",
+      hint: "Aguardando validação.",
+      actionLabel: "Aguardando análise",
+      badgeClass:
+        "border-amber-400/25 bg-amber-500/10 text-amber-200 ring-amber-400/20",
+      labelClass: "text-amber-200",
+    };
+  }
+  return {
+    label: "Pendente",
+    hint: "",
+    actionLabel: "Enviar documento",
+    badgeClass: "border-white/10 bg-white/[0.04] text-slate-300 ring-white/10",
+    labelClass: "text-slate-200",
+  };
+}
 
 export default function DocumentsPage() {
   const router = useRouter();
@@ -105,6 +155,36 @@ export default function DocumentsPage() {
     return latest;
   }, [items]);
 
+  const priorityTipo = useMemo(() => {
+    // Prioridade: corrigir recusado primeiro; senão, enviar o primeiro pendente.
+    for (const opt of DOCUMENT_TYPE_OPTIONS) {
+      const cur = latestByTipo[opt.value];
+      if (cur?.status === "rejeitado" || cur?.status === "recusado") {
+        return opt.value;
+      }
+    }
+    for (const opt of DOCUMENT_TYPE_OPTIONS) {
+      const cur = latestByTipo[opt.value];
+      if (!cur) {
+        return opt.value;
+      }
+    }
+    return DOCUMENT_TYPE_OPTIONS[0]?.value ?? "";
+  }, [latestByTipo]);
+
+  const orderedOptions = useMemo(() => {
+    const all = [...DOCUMENT_TYPE_OPTIONS];
+    if (!priorityTipo) {
+      return all;
+    }
+    all.sort((a, b) => {
+      if (a.value === priorityTipo) return -1;
+      if (b.value === priorityTipo) return 1;
+      return 0;
+    });
+    return all;
+  }, [priorityTipo]);
+
   function handleEscolherArquivo(tipo: string) {
     const current = latestByTipo[tipo];
     if (current?.status === "aprovado") {
@@ -178,12 +258,14 @@ export default function DocumentsPage() {
 
       if (insErr) {
         setFormError(
-          `Arquivo enviado, mas o registo falhou: ${insErr.message}. Tente falar com o suporte.`,
+          `Documento enviado, mas o registro falhou: ${insErr.message}. Tente falar com o suporte.`,
         );
         return;
       }
 
-      setFormSuccess(`${tipoLabel(tipoUpload)} enviado com sucesso.`);
+      setFormSuccess(
+        `${tipoLabel(tipoUpload)} enviado com sucesso. A equipe já pode iniciar a análise.`,
+      );
       await loadDocuments(userId);
       await refreshDocumentos();
     } catch (err) {
@@ -196,23 +278,27 @@ export default function DocumentsPage() {
   }
 
   return (
-    <div className="min-h-screen">
-      <DashboardHeader title="Documentos" />
-      <main className="px-6 pt-4 pb-10">
+    <div className="min-h-screen bg-[radial-gradient(900px_480px_at_12%_0%,rgba(139,92,246,0.14),transparent_50%),radial-gradient(700px_420px_at_88%_10%,rgba(59,130,246,0.1),transparent_50%),linear-gradient(to_bottom,#070a12,#03050c)] text-slate-100">
+      <DashboardHeader
+        variant="dark"
+        title="Documentos"
+      />
+      <main className="px-4 pb-12 pt-5 sm:px-6 lg:px-8">
         {listError ? (
-          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          <div className="mx-auto mb-4 w-full max-w-7xl rounded-xl border border-red-500/25 bg-red-950/40 px-4 py-3 text-sm text-red-100">
             {listError}
           </div>
         ) : null}
 
-        <div className="mb-6 rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-          <div className="text-sm font-medium text-zinc-900">
-            Documentos obrigatórios
-          </div>
-          <p className="mt-1 text-sm text-zinc-600">
-            Envie um arquivo para cada item abaixo. Aceitamos PDF, DOC ou DOCX,
-            até 5MB.
-          </p>
+        <div className="mx-auto w-full max-w-7xl space-y-6">
+          <section className="rounded-3xl border border-white/10 bg-slate-950/55 p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_24px_80px_rgba(0,0,0,0.35)]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-500">
+              Ação
+            </p>
+            <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-50">
+              Envie seus documentos abaixo para concluir sua etapa.
+            </h1>
+          </section>
 
           <input
             ref={fileInputRef}
@@ -223,122 +309,175 @@ export default function DocumentsPage() {
             onChange={onSubmitFile}
           />
 
-          <div className="mt-4 grid gap-4 lg:grid-cols-2">
-            {DOCUMENT_TYPE_OPTIONS.map((doc) => {
+          {formError ? (
+            <div className="rounded-xl border border-red-500/25 bg-red-950/40 px-4 py-3 text-sm text-red-100">
+              {formError}
+            </div>
+          ) : null}
+          {formSuccess ? (
+            <div className="rounded-xl border border-emerald-400/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+              {formSuccess}
+            </div>
+          ) : null}
+
+          <section>
+            <div className="mb-4">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                Documentos obrigatórios
+              </p>
+              <div className="mt-3 space-y-3 text-sm text-slate-400">
+                <p>Para concluir seu cadastro, envie os 4 documentos obrigatórios:</p>
+                <ul className="list-disc space-y-1 pl-5">
+                  <li>RG/CPF</li>
+                  <li>Diploma ou certificado</li>
+                  <li>Histórico escolar</li>
+                  <li>Comprovante de endereço</li>
+                </ul>
+                <p>Se algum documento for recusado, basta corrigir e reenviar.</p>
+              </div>
+            </div>
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            {orderedOptions.map((doc) => {
               const current = latestByTipo[doc.value];
               const hasDocument = Boolean(current);
               const isApproved = current?.status === "aprovado";
+              const status = normalizeDocStatus(current?.status);
+              const isRejected =
+                current?.status === "rejeitado" || current?.status === "recusado";
+              const isInReview =
+                current?.status === "enviado" || current?.status === "em_analise";
+              const isPriority = doc.value === priorityTipo;
               return (
                 <section
                   key={doc.value}
-                  className="rounded-xl border border-zinc-200 bg-zinc-50/60 p-4"
+                  className={
+                    isPriority
+                      ? "relative overflow-hidden rounded-3xl border border-violet-400/40 bg-gradient-to-br from-violet-950/40 to-slate-950/70 p-7 shadow-[0_0_0_1px_rgba(139,92,246,0.22),0_26px_90px_rgba(0,0,0,0.55)]"
+                      : "relative overflow-hidden rounded-3xl border border-white/10 bg-slate-950/55 p-7 shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_22px_70px_rgba(0,0,0,0.45)]"
+                  }
                 >
+                  <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-violet-400/35 to-transparent" />
+
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0">
-                      <h2 className="font-medium text-zinc-950">{doc.label}</h2>
-                      <p className="mt-1 text-sm text-zinc-600">
-                        {doc.description}
-                      </p>
-                      {current ? (
-                        <p className="mt-2 truncate text-xs text-zinc-500">
-                          Último arquivo: {current.nome_arquivo_original}
+                      <div className="flex items-start justify-between gap-2">
+                        <h2 className="min-w-0 text-lg font-semibold tracking-tight text-slate-50">
+                          {doc.label}
+                        </h2>
+                        <div className="flex flex-wrap items-center justify-end gap-2">
+                          {isPriority ? (
+                            <span className="inline-flex items-center rounded-full border border-violet-400/40 bg-violet-500/20 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.22em] text-violet-100 shadow-[0_0_22px_rgba(139,92,246,0.18)] whitespace-nowrap">
+                              PRIORIDADE AGORA
+                            </span>
+                          ) : null}
+                          <span
+                            className={`inline-flex items-center justify-center rounded-2xl border px-4 py-2.5 text-sm font-extrabold uppercase tracking-wide ring-1 whitespace-nowrap ${status.badgeClass}`}
+                          >
+                            {status.label}
+                          </span>
+                        </div>
+                      </div>
+                      {status.hint ? (
+                        <p className="mt-2 text-sm font-medium text-slate-300">
+                          {status.hint}
                         </p>
                       ) : null}
-                      {current?.status === "rejeitado" &&
-                      current.motivo_rejeicao ? (
-                        <p className="mt-2 text-xs text-red-700">
-                          Motivo: {current.motivo_rejeicao}
+                      {current ? (
+                        <div className="mt-5 space-y-1.5 rounded-2xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-xs text-slate-400">
+                          <p className="truncate">
+                            <span className="text-slate-500">Último documento:</span>{" "}
+                            <span className="text-slate-200">
+                              {String(current.nome_arquivo_original ?? "Documento")}
+                            </span>
+                          </p>
+                          <p>
+                            <span className="text-slate-500">Enviado em:</span>{" "}
+                            {formatUploadedAt(String(current.created_at ?? ""))}
+                          </p>
+                        </div>
+                      ) : null}
+                      {isRejected && current?.motivo_rejeicao ? (
+                        <p className="mt-4 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-xs leading-relaxed text-red-100">
+                          <span className="font-semibold text-red-200">
+                            Motivo da recusa:
+                          </span>{" "}
+                          {current.motivo_rejeicao}
                         </p>
                       ) : null}
                     </div>
-                    <span
-                      className={`inline-flex w-fit rounded-md px-2.5 py-1 text-xs font-medium ring-1 ${
-                        current
-                          ? documentStatusClass(current.status)
-                          : "bg-zinc-100 text-zinc-700 ring-zinc-200/80"
-                      }`}
-                    >
-                      {current
-                        ? documentStatusLabel(current.status)
-                        : "Não enviado"}
-                    </span>
                   </div>
                   <button
                     type="button"
-                    disabled={isUploading || !userId || isApproved}
+                    disabled={isUploading || !userId || isApproved || isInReview}
                     onClick={() => handleEscolherArquivo(doc.value)}
-                    className="mt-4 inline-flex h-10 items-center justify-center rounded-md bg-violet-600 px-4 text-sm font-medium text-white hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-60"
+                    className={
+                      isApproved || isInReview
+                        ? "mt-6 inline-flex h-12 w-full items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] px-5 text-base font-semibold text-slate-400 disabled:cursor-not-allowed"
+                        : isPriority
+                          ? "mt-6 inline-flex h-12 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-blue-600 px-5 text-base font-semibold text-white shadow-[0_0_34px_rgba(139,92,246,0.28)] transition hover:from-violet-500 hover:via-fuchsia-500 hover:to-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                          : "mt-6 inline-flex h-12 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-violet-600 to-blue-600 px-5 text-base font-semibold text-white shadow-[0_0_22px_rgba(139,92,246,0.18)] transition hover:from-violet-500 hover:to-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                    }
                   >
                     {isApproved
-                      ? "Documento aprovado"
+                      ? status.actionLabel
                       : isUploading && selectedTipo === doc.value
-                      ? "A enviar…"
-                      : hasDocument
-                        ? "Substituir arquivo"
-                        : "Enviar arquivo"}
+                        ? "Enviando…"
+                        : isInReview
+                          ? status.actionLabel
+                          : isRejected
+                            ? "Reenviar documento"
+                            : hasDocument
+                              ? "Enviar nova versão"
+                              : "Enviar documento"}
                   </button>
                 </section>
               );
             })}
           </div>
+          </section>
 
-          {formError ? (
-            <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
-              {formError}
-            </div>
-          ) : null}
-          {formSuccess ? (
-            <div className="mt-3 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
-              {formSuccess}
-            </div>
-          ) : null}
-        </div>
-
-        <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-          <div className="text-sm font-medium text-zinc-900">
-            Histórico de envios
-          </div>
+        <section className="rounded-2xl border border-white/10 bg-slate-950/45 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+          <div className="text-sm font-semibold text-slate-100">Histórico de envios</div>
           {isLoading ? (
-            <p className="mt-3 text-sm text-zinc-500">A carregar…</p>
+            <p className="mt-3 text-sm text-slate-500">Carregando…</p>
           ) : items.length === 0 ? (
-            <p className="mt-3 text-sm text-zinc-600">
-              Ainda não enviou documentos.
-            </p>
+            <div className="mt-3" />
           ) : (
-            <ul className="mt-4 divide-y divide-zinc-100">
+            <ul className="mt-4 divide-y divide-white/10">
               {items.map((d) => (
                 <li
                   key={d.id}
                   className="flex flex-col gap-2 py-4 first:pt-0 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="min-w-0">
-                    <div className="font-medium text-zinc-900 truncate">
-                      {d.titulo || tipoLabel(d.tipo)}
+                    <div className="truncate font-medium text-slate-100">
+                      {d.titulo ?? tipoLabel(d.tipo) ?? "Documento"}
                     </div>
-                    <div className="mt-0.5 text-xs text-zinc-500">
-                      {d.nome_arquivo_original} · {tipoLabel(d.tipo)} ·{" "}
-                      {new Date(d.created_at).toLocaleString("pt-PT", {
-                        dateStyle: "short",
-                        timeStyle: "short",
-                      })}
+                    <div className="mt-0.5 text-xs text-slate-500">
+                      {String(d.nome_arquivo_original ?? "Documento")} ·{" "}
+                      {tipoLabel(d.tipo) ?? "Documento"} ·{" "}
+                      {formatUploadedAt(String(d.created_at ?? ""))}
                     </div>
-                    {d.status === "rejeitado" && d.motivo_rejeicao ? (
-                      <div className="mt-1 text-xs text-red-700">
+                    {(d.status === "rejeitado" || d.status === "recusado") &&
+                    d.motivo_rejeicao ? (
+                      <div className="mt-1 text-xs text-red-200">
                         Motivo: {d.motivo_rejeicao}
                       </div>
                     ) : null}
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     <span
-                      className={`inline-flex rounded-md px-2.5 py-1 text-xs font-medium ring-1 ${documentStatusClass(d.status)}`}
+                      className={`inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold ring-1 ${normalizeDocStatus(d.status).badgeClass}`}
                     >
-                      {documentStatusLabel(d.status)}
+                      {normalizeDocStatus(d.status).label}
                     </span>
                   </div>
                 </li>
               ))}
             </ul>
           )}
+        </section>
         </div>
       </main>
     </div>
