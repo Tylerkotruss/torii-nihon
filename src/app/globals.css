@@ -19,12 +19,12 @@
   }
 }
 
-html,
-body {
-  /* Defesa global contra overflow horizontal acidental no mobile.
-     Páginas que precisarem de scroll horizontal devem fazer isso em
-     containers internos com overflow-x-auto. */
-  overflow-x: hidden;
+/* Defesa global contra overflow horizontal acidental no mobile.
+   Aplicada APENAS no body — não em html — para não quebrar
+   position:sticky em iOS Safari. Páginas que precisarem de scroll
+   horizontal devem fazer isso em containers internos com
+   overflow-x-auto. */
+html {
   max-width: 100%;
 }
 
@@ -32,4 +32,6 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  max-width: 100%;
+  overflow-x: hidden;
 }

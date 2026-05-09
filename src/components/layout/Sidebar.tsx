@@ -226,13 +226,25 @@ const SidebarNav = memo(function SidebarNav({
 });
 
 type SidebarProps = {
-  /** No mobile (<lg), controla a abertura do drawer. Em lg+ a sidebar é sempre visível. */
-  isOpen?: boolean;
-  /** Callback para fechar o drawer (clique no backdrop, no botão X ou em um link). */
+  /** Quando o usuário clica em um link, o pai pode reagir (ex.: fechar drawer). */
+  onNavigate?: () => void;
+  /** Mostra o botão "X" de fechar (apenas no contexto de drawer). */
+  showCloseButton?: boolean;
+  /** Callback do botão "X". */
   onClose?: () => void;
 };
 
-export function Sidebar({ isOpen = false, onClose }: SidebarProps = {}) {
+/**
+ * Sidebar puramente apresentacional. Não controla posição/visibilidade.
+ * Quem decide onde renderizar (desktop fixo OU drawer mobile) é o
+ * DashboardAppShell — isso elimina dependência de utilitários `translate`
+ * e qualquer ambiguidade de empilhamento entre desktop e mobile.
+ */
+export function Sidebar({
+  onNavigate,
+  showCloseButton = false,
+  onClose,
+}: SidebarProps = {}) {
   const pathname = usePathname();
   const data = useDashboardDataOptional();
   const loading = data?.isLoading ?? true;
@@ -245,41 +257,23 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps = {}) {
   const statusGeral = docResumo?.statusGeral ?? "—";
 
   return (
-    <>
-      {/* Backdrop (mobile only). Some um clique fecha o drawer. */}
-      <button
-        type="button"
-        aria-label="Fechar menu"
-        tabIndex={isOpen ? 0 : -1}
-        onClick={onClose}
-        className={[
-          "fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity lg:hidden",
-          isOpen ? "opacity-100" : "pointer-events-none opacity-0",
-        ].join(" ")}
-      />
-
-      <aside
-        aria-label="Menu de navegação"
-        className={[
-          // Mobile: drawer fixo, deslizando lateralmente.
-          "fixed inset-y-0 left-0 z-50 h-screen w-72 max-w-[85vw] border-r border-zinc-800 bg-zinc-950 text-zinc-100",
-          "overflow-y-auto overflow-x-hidden scroll-smooth",
-          "transform transition-transform duration-200 ease-out",
-          // Desktop (lg+): sempre visível.
-          "lg:translate-x-0",
-          isOpen ? "translate-x-0" : "-translate-x-full",
-          styles.sidebarScroll,
-        ].join(" ")}
-      >
-        <div className="flex h-14 items-center justify-between border-b border-zinc-800 px-5">
-          <div className="text-sm font-semibold tracking-tight text-zinc-100">
-            Portal do Aluno
-          </div>
+    <div
+      className={[
+        "flex h-full w-full max-w-full min-w-0 flex-col bg-zinc-950 text-zinc-100",
+        "overflow-y-auto overflow-x-hidden scroll-smooth",
+        styles.sidebarScroll,
+      ].join(" ")}
+    >
+      <div className="flex h-14 shrink-0 items-center justify-between border-b border-zinc-800 px-5">
+        <div className="text-sm font-semibold tracking-tight text-zinc-100">
+          Portal do Aluno
+        </div>
+        {showCloseButton ? (
           <button
             type="button"
             aria-label="Fechar menu"
             onClick={onClose}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900/60 text-zinc-200 transition-colors hover:bg-zinc-800/60 lg:hidden"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-900/60 text-zinc-200 transition-colors hover:bg-zinc-800/60"
           >
             <svg
               viewBox="0 0 24 24"
@@ -296,25 +290,25 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps = {}) {
               <path d="M18 6L6 18" />
             </svg>
           </button>
-        </div>
+        ) : null}
+      </div>
 
-        <section className="px-4 pt-3">
-          {loading ? (
-            <SidebarUserCard
-              loading={loading}
-              nome={nome}
-              statusGeral={loading ? "…" : statusGeral}
-              sublinhaDoc={loading ? "…" : sublinhaDoc}
-            />
-          ) : (
-            <ToriiCard mode="compact" />
-          )}
-        </section>
+      <section className="px-4 pt-3">
+        {loading ? (
+          <SidebarUserCard
+            loading={loading}
+            nome={nome}
+            statusGeral={loading ? "…" : statusGeral}
+            sublinhaDoc={loading ? "…" : sublinhaDoc}
+          />
+        ) : (
+          <ToriiCard mode="compact" />
+        )}
+      </section>
 
-        <div className="px-4 pb-4" onClick={onClose}>
-          <SidebarNav pathname={pathname} />
-        </div>
-      </aside>
-    </>
+      <div className="px-4 pb-4" onClick={onNavigate}>
+        <SidebarNav pathname={pathname} />
+      </div>
+    </div>
   );
 }
