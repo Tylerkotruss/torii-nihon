@@ -1089,7 +1089,7 @@ export default function CadastroPage() {
     <div
       className={cx(
         "min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center px-4",
-        "py-16 sm:py-24",
+        "py-8 sm:py-16 lg:py-24",
       )}
       style={
         {
@@ -1100,17 +1100,17 @@ export default function CadastroPage() {
     >
       <div className="w-full max-w-3xl">
         <div
-          className="rounded-[28px] border border-zinc-800/90 bg-zinc-950 px-10 py-12 shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_24px_80px_rgba(0,0,0,0.65)]"
+          className="rounded-2xl border border-zinc-800/90 bg-zinc-950 px-5 py-6 shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_24px_80px_rgba(0,0,0,0.65)] sm:rounded-[28px] sm:px-10 sm:py-12"
           style={{
             boxShadow:
               "0 0 0 1px rgba(255,255,255,0.04), 0 24px 80px rgba(0,0,0,0.65), 0 0 120px rgba(124,58,237,0.10)",
           }}
         >
           <div className="text-center">
-            <div className="text-4xl font-semibold tracking-[0.18em] text-zinc-100">
+            <div className="text-2xl font-semibold tracking-[0.12em] text-zinc-100 sm:text-3xl sm:tracking-[0.16em] lg:text-4xl lg:tracking-[0.18em]">
               {step === 0 ? dict.selectCountryTitle : stepHeader}
             </div>
-            <div className="mt-3 text-base text-zinc-400">
+            <div className="mt-3 text-sm text-zinc-400 sm:text-base">
               {step === 0 ? dict.selectCountrySubtitle : dict.stepSubtitle}
             </div>
             <p className="mt-4 text-sm text-zinc-400">

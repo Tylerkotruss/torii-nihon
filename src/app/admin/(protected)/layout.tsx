@@ -14,7 +14,9 @@ export default async function AdminProtectedLayout({
   return (
     <>
       <AdminNav />
-      <div className="w-full px-6 py-6 xl:px-8">{children}</div>
+      <div className="w-full min-w-0 px-4 py-4 sm:px-6 sm:py-6 xl:px-8">
+        {children}
+      </div>
     </>
   );
 }

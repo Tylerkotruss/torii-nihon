@@ -68,27 +68,46 @@ function AdminNavInner() {
 
   return (
     <header className="border-b border-white/10 bg-slate-950/55 text-slate-100 backdrop-blur">
-      <div className="flex w-full flex-col gap-3 px-6 py-3 sm:flex-row sm:items-center sm:justify-between xl:px-8">
-        <div className="flex flex-col leading-tight">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-semibold tracking-tight text-slate-50">
-              Torii Nihon
-            </span>
-            <span className="h-1 w-1 rounded-full bg-violet-300/80 shadow-[0_0_12px_rgba(139,92,246,0.55)]" />
-            <span className="text-xs font-semibold uppercase tracking-[0.22em] text-violet-200/90">
-              Admin Panel
-            </span>
+      <div className="flex w-full flex-col gap-3 px-4 py-3 sm:px-6 sm:flex-row sm:items-center sm:justify-between sm:gap-4 xl:px-8">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 flex-col leading-tight">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold tracking-tight text-slate-50">
+                Torii Nihon
+              </span>
+              <span className="h-1 w-1 rounded-full bg-violet-300/80 shadow-[0_0_12px_rgba(139,92,246,0.55)]" />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-violet-200/90 sm:text-xs">
+                Admin Panel
+              </span>
+            </div>
+            <div className="mt-0.5 truncate text-xs text-slate-400/90">
+              Controle de Documentos
+            </div>
           </div>
-          <div className="mt-0.5 text-xs text-slate-400/90">
-            Controle de Documentos
-          </div>
+          {/* "Aluno" visível no mobile, ao lado do título; some em sm+ */}
+          <Link
+            href="/dashboard"
+            prefetch={true}
+            className="shrink-0 text-xs font-semibold text-slate-300 hover:text-slate-50 sm:hidden"
+          >
+            Aluno →
+          </Link>
         </div>
-        <nav>
-          <ul className="flex flex-wrap gap-1">
+
+        {/* Nav: horizontalmente scrollável no mobile, wrap em sm+. */}
+        <nav className="-mx-4 sm:mx-0">
+          <ul
+            className={[
+              "flex flex-nowrap gap-1 overflow-x-auto px-4",
+              "sm:flex-wrap sm:overflow-visible sm:px-0",
+              // Esconde scrollbar do strip horizontal mobile, sem perder rolagem
+              "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+            ].join(" ")}
+          >
             {LINKS.map((l) => {
               const on = navActive(pathname, l.href);
               return (
-                <li key={l.href}>
+                <li key={l.href} className="shrink-0">
                   <Link
                     href={l.href}
                     prefetch={true}
@@ -101,9 +120,12 @@ function AdminNavInner() {
             })}
           </ul>
         </nav>
-        <div className="flex items-center gap-3">
+
+        {/* "Ir para área do aluno" só em sm+ (no mobile já tem o link no topo). */}
+        <div className="hidden items-center gap-3 sm:flex">
           <Link
             href="/dashboard"
+            prefetch={true}
             className="text-xs font-semibold text-slate-300 hover:text-slate-50"
           >
             Ir para área do aluno

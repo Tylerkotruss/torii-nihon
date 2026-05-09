@@ -26,21 +26,21 @@ export function DashboardHeader({
           : "border-b border-zinc-200 bg-white/80 backdrop-blur supports-[backdrop-filter]:bg-white/60"
       }
     >
-      <div className="flex items-start justify-between gap-6 px-6 py-4">
-        <div className="flex items-start gap-3">
+      <div className="flex flex-col items-start gap-3 px-4 py-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6 sm:px-6 sm:py-4">
+        <div className="flex w-full min-w-0 items-start gap-3">
           <span
             className={
               isDark
-                ? "h-5 w-1 rounded-full bg-violet-400 shadow-[0_0_16px_rgba(139,92,246,0.45)]"
-                : "h-5 w-1 rounded-full bg-violet-600"
+                ? "h-5 w-1 shrink-0 rounded-full bg-violet-400 shadow-[0_0_16px_rgba(139,92,246,0.45)]"
+                : "h-5 w-1 shrink-0 rounded-full bg-violet-600"
             }
           />
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <div
               className={
                 isDark
-                  ? "text-lg font-semibold tracking-tight text-slate-50"
-                  : "text-lg font-semibold tracking-tight text-zinc-950"
+                  ? "truncate text-base font-semibold tracking-tight text-slate-50 sm:text-lg"
+                  : "truncate text-base font-semibold tracking-tight text-zinc-950 sm:text-lg"
               }
             >
               {title}
@@ -49,8 +49,8 @@ export function DashboardHeader({
               <div
                 className={
                   isDark
-                    ? "mt-0.5 text-sm text-slate-400"
-                    : "mt-0.5 text-sm text-zinc-600"
+                    ? "mt-0.5 text-xs text-slate-400 sm:text-sm"
+                    : "mt-0.5 text-xs text-zinc-600 sm:text-sm"
                 }
               >
                 {subtitle}
@@ -58,7 +58,7 @@ export function DashboardHeader({
             ) : null}
           </div>
         </div>
-        <div className="mt-0.5 flex min-w-0 max-w-sm items-center gap-3 text-right">
+        <div className="flex min-w-0 items-center gap-3 self-end text-right sm:mt-0.5 sm:max-w-sm sm:self-auto">
           {showUserSummary ? (
             <div className="min-w-0 flex-1">
               {isAccountLoading ? (

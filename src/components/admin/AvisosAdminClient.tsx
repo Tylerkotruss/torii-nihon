@@ -521,7 +521,7 @@ export function AvisosAdminClient({ rows }: Props) {
                   />
                   Fixado
                 </label>
-                <label className="block min-w-[240px] flex-1">
+                <label className="block min-w-0 flex-1 sm:min-w-[240px]">
                   <span className="text-sm font-medium text-slate-300">Público</span>
                   <select
                     value={form.publico}
